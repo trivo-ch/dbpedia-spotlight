@@ -72,7 +72,7 @@ object WikiOccurrenceSource
       new WikiOccurrenceSource(
         new MemorySource(
           testFile.map{ line =>
-            new WikiPage(new WikiTitle("Test Paragraph", Namespace.Main, Language.English), line.trim())
+            new WikiPage(new WikiTitle("Test Paragraph", Namespace.Main, Language.English, true, ""), line.trim())
           }.toTraversable.asInstanceOf[scala.collection.immutable.Traversable[org.dbpedia.extraction.sources.WikiPage]]
         )
       )

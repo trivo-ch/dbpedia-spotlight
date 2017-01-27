@@ -132,7 +132,8 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_${scala.compiler.version}</artifactId>
+            <artifactId>scalatest_2.10</artifactId>
+            <version>3.0.1</version>
         </dependency>
 
     </dependencies>

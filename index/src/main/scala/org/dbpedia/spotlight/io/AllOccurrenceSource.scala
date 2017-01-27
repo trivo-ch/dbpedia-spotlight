@@ -68,7 +68,7 @@ object AllOccurrenceSource
      */
     private class AllOccurrenceSource(wikiPages : Source, multiplyDisambigs : Int=MULTIPLY_DISAMBIGUATION_CONTEXT) extends OccurrenceSource
     {
-        val wikiParser = WikiParser()
+        val wikiParser = WikiParser
 
         override def foreach[U](f : DBpediaResourceOccurrence => U) : Unit =
         {
@@ -77,7 +77,7 @@ object AllOccurrenceSource
 
             for (wikiPage <- wikiPages)
             {
-                var pageNode = wikiParser( wikiPage )
+                var pageNode = wikiParser
 
                 // disambiguations
                 if (pageNode.isDisambiguation) {

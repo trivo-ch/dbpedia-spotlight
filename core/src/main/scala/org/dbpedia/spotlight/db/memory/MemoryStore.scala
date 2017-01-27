@@ -1,20 +1,26 @@
 package org.dbpedia.spotlight.db.memory
 
 
-import com.esotericsoftware.kryo.io.{Output, Input}
-import org.dbpedia.spotlight.model.{DBpediaType, FreebaseType, SchemaOrgType, OntologyType}
+import com.esotericsoftware.kryo.io.{Input, Output}
+import org.dbpedia.spotlight.model.{DBpediaType, FreebaseType, OntologyType, SchemaOrgType}
 import java.io._
+
 import scala.Predef._
-import com.esotericsoftware.kryo.serializers.{DefaultArraySerializers, JavaSerializer}
-import java.lang.{System, Short, String}
+import com.esotericsoftware.kryo.serializers.{DefaultArraySerializers}
+import java.lang.{Short, String, System}
+
+import ch.trivo.kryo.serializers.MyJavaSerializer
+
 import collection.mutable.HashMap
 import org.dbpedia.spotlight.log.SpotlightLog
 import com.esotericsoftware.kryo.serializers.DefaultSerializers.KryoSerializableSerializer
 import com.esotericsoftware.kryo.Kryo
-import org.dbpedia.spotlight.db.model.{TokenTypeStore, ResourceStore}
+import org.dbpedia.spotlight.db.model.{ResourceStore, TokenTypeStore}
 import org.dbpedia.spotlight.db.FSADictionary
+
 import scala.Some
 import it.unimi.dsi.fastutil.objects.Object2ShortOpenHashMap
+
 import scala.Some
 
 
@@ -55,12 +61,14 @@ object MemoryStore {
   kryos.put(classOf[MemoryResourceStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(true)
 
     kryo.register(classOf[Array[Int]], new DefaultArraySerializers.IntArraySerializer())
     kryo.register(classOf[Array[scala.Short]], new DefaultArraySerializers.ShortArraySerializer())
     kryo.register(classOf[Array[String]], new DefaultArraySerializers.StringArraySerializer())
-    kryo.register(classOf[Array[Array[Short]]], new JavaSerializer())
+    kryo.register(classOf[Array[Array[Short]]], new MyJavaSerializer())
 
     kryo.register(classOf[OntologyType])
     kryo.register(classOf[DBpediaType])
@@ -68,7 +76,8 @@ object MemoryStore {
     kryo.register(classOf[SchemaOrgType])
 
     kryo.register(classOf[MemoryResourceStore])
-    kryo.register(classOf[MemoryOntologyTypeStore], new JavaSerializer())
+    kryo.register(classOf[MemoryOntologyTypeStore], new MyJavaSerializer())
+    // kryo.register(classOf[MemoryOntologyTypeStore])
 
     kryo
   }
@@ -77,15 +86,17 @@ object MemoryStore {
   kryos.put(classOf[MemorySurfaceFormStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(true)
 
     kryo.register(classOf[Array[scala.Short]], new DefaultArraySerializers.ShortArraySerializer())
     kryo.register(classOf[Array[scala.Int]], new DefaultArraySerializers.IntArraySerializer())
     kryo.register(classOf[Array[String]], new DefaultArraySerializers.StringArraySerializer())
     kryo.register(classOf[MemorySurfaceFormStore])
-    kryo.register(classOf[java.util.Map[String, java.lang.Short]], new JavaSerializer())
-    kryo.register(classOf[java.util.HashMap[String, Array[scala.Int]]], new JavaSerializer())
-    kryo.register(classOf[Object2ShortOpenHashMap[String]], new JavaSerializer())
+    kryo.register(classOf[java.util.Map[String, java.lang.Short]], new MyJavaSerializer())
+    kryo.register(classOf[java.util.HashMap[String, Array[scala.Int]]], new MyJavaSerializer())
+    kryo.register(classOf[Object2ShortOpenHashMap[String]], new MyJavaSerializer())
 
     kryo
   }
@@ -94,6 +105,8 @@ object MemoryStore {
   kryos.put(classOf[MemoryContextStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(true)
 
     kryo.register(classOf[MemoryContextStore], new KryoSerializableSerializer())
@@ -105,9 +118,11 @@ object MemoryStore {
   kryos.put(classOf[MemoryCandidateMapStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(true)
 
-    kryo.register(classOf[MemoryCandidateMapStore], new JavaSerializer())
+    kryo.register(classOf[MemoryCandidateMapStore], new MyJavaSerializer())
 
     kryo
   }
@@ -117,6 +132,8 @@ object MemoryStore {
   kryos.put(classOf[MemoryTokenTypeStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(true)
 
     kryo.register(classOf[Array[Int]],    new DefaultArraySerializers.IntArraySerializer())
@@ -130,6 +147,8 @@ object MemoryStore {
   kryos.put(classOf[FSADictionary].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(false)
 
     //kryo.register(classOf[FSADictionary], new JavaSerializer())
@@ -141,6 +160,8 @@ object MemoryStore {
   kryos.put(classOf[MemoryQuantizedCountStore].getSimpleName,
   {
     val kryo = new Kryo()
+    val classLoader = Thread.currentThread.getContextClassLoader
+    kryo.setClassLoader(classLoader)
     kryo.setRegistrationRequired(false)
     kryo
   }
@@ -149,10 +170,11 @@ object MemoryStore {
   def load[T](in: InputStream, simpleName: String, quantizedCountStore: Option[MemoryQuantizedCountStore] = None): T = {
 
     val kryo: Kryo = kryos.get(simpleName).get
-
+    kryo.setClassLoader(Thread.currentThread().getContextClassLoader())
     SpotlightLog.info(this.getClass, "Loading %s...".format(simpleName))
     val sStart = System.currentTimeMillis()
     val input = new Input(in)
+    println(kryo.getClassLoader)
 
     val s = kryo.readClassAndObject(input).asInstanceOf[T]
 

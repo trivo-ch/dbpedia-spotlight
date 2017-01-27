@@ -110,10 +110,10 @@
             <groupId>org.dbpedia.spotlight</groupId>
             <artifactId>rest</artifactId>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.dbpedia.spotlight</groupId>
             <artifactId>index</artifactId>
-        </dependency>
+        </dependency>-->
 
     </dependencies>
 </project>
